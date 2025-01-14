@@ -1,9 +1,9 @@
-import socket
+import requests
 import time
+import json
 
 # Traccar server details
-HOST = 'localhost'  # Replace with your Traccar server's IP address or hostname
-PORT = 5056
+BASE_URL = 'http://127.0.0.1:5056'  # Replace with your Traccar server's IP address or hostname and port
 
 # Device ID (replace with your device's ID)
 DEVICE_ID = '12345'
@@ -18,20 +18,23 @@ course = 0
 # Message interval in seconds
 INTERVAL = 10
 
-def send_gps_message(sock, device_id, latitude, longitude, altitude, speed, course):
+def send_gps_message(device_id, latitude, longitude, altitude, speed, course):
     time_stamp = int(time.time())
-    message = f'{device_id}{latitude:09.6f}{longitude:010.6f}{altitude:06d}{speed:06d}{course:06d}{time_stamp:010d}\r\n'.encode()
-    sock.sendall(message)
-    print(f"Sent GPS data: {message.decode()}")
+    data = {
+        "id": device_id,
+        "pos": [latitude, longitude],
+        "alt": altitude,
+        "speed": speed,
+        "course": course,
+        "time": time_stamp
+    }
+    response = requests.post(f'{BASE_URL}/gps', json=data)
+    if response.status_code == 200:
+        print(f"Sent GPS data: {json.dumps(data)}")
+    else:
+        print(f"Error sending GPS data: {response.status_code} - {response.text}")
 
-# Create a TCP socket
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-    # Connect to the Traccar server
-    sock.connect((HOST, PORT))
-
-    try:
-        while True:
-            send_gps_message(sock, DEVICE_ID, latitude, longitude, altitude, speed, course)
-            time.sleep(INTERVAL)
-    except KeyboardInterrupt:
-        print("\nTest server stopped.")
+# Send GPS messages in a continuous loop at the specified interval
+while True:
+    send_gps_message(DEVICE_ID, latitude, longitude, altitude, speed, course)
+    time.sleep(INTERVAL)
