@@ -1,0 +1,36 @@
+version: '3'
+services:
+  traccar:
+    image: traccar/traccar:latest
+    environment:
+      - DB_URL=jdbc:postgresql://traccar_db:5432/traccar
+      - DB_USER=traccar
+      - DB_PASSWORD=your_password
+      - DB_DRIVER=org.postgresql.Driver
+    ports:
+      - "8082:8082" # Web UI
+      - "5055:5055" # Gpsd protocol
+      - "5056:5056" # TCP protocol
+      - "8080:8080" # HTTP protocol
+    depends_on:
+      - traccar_db
+    deploy:
+      mode: replicated
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  traccar_db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: traccar
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: traccar
+    volumes:
+      - traccar_data:/var/lib/postgresql/data
+
+volumes:
+  traccar_data:
