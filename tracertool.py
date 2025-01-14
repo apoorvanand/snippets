@@ -5,6 +5,9 @@ import time
 HOST = 'localhost'  # Replace with your Traccar server's IP address or hostname
 PORT = 5056
 
+# Device ID (replace with your device's ID)
+DEVICE_ID = '12345'
+
 # Create a TCP socket
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     # Connect to the Traccar server
@@ -18,8 +21,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     course = 0
     time_stamp = int(time.time())
 
-    # Send GPS data as a TCP message
-    message = f'{"GPS".encode()}{latitude:09.6f}{longitude:010.6f}{altitude:06d}{speed:06d}{course:06d}{time_stamp:010d}\r\n'.encode()
+    # Send GPS data as a TCP message with the device ID
+    message = f'{DEVICE_ID}{latitude:09.6f}{longitude:010.6f}{altitude:06d}{speed:06d}{course:06d}{time_stamp:010d}\r\n'.encode()
     sock.sendall(message)
 
     print(f"Sent GPS data: {message.decode()}")
