@@ -1,0 +1,34 @@
+version: '3'
+services:
+  tracecar:
+    image: tracecar/tracecar:latest
+    environment:
+      - DATABASE_URL=postgres://tracecar:your_password@tracecar_db:5432/tracecar
+      - CELERY_BROKER_URL=redis://tracecar_redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://tracecar_redis:6379/0
+    ports:
+      - "8000:8000"
+      - "3000:3000" # UI port
+    depends_on:
+      - tracecar_db
+      - tracecar_redis
+    networks:
+      - tracecar_network
+
+  tracecar_db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_USER=tracecar
+      - POSTGRES_PASSWORD=your_password
+      - POSTGRES_DB=tracecar
+    networks:
+      - tracecar_network
+
+  tracecar_redis:
+    image: redis:6-alpine
+    networks:
+      - tracecar_network
+
+networks:
+  tracecar_network:
+    driver: overlay
