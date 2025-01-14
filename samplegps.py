@@ -9,23 +9,20 @@ SERVER_PORT = 5056       # Traccar TCP port for GPS data
 # Create a TCP socket
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-def generate_dummy_gps_data():
+def generate_osmand_frame():
     """
-    Generate dummy GPS data in Traccar protocol format.
-    Replace with the required format if your Traccar setup expects a specific structure.
+    Generate GPS data in OsmAnd protocol format for Traccar.
     """
-    # Example data format: "$<device_id>,<timestamp>,<latitude>,<longitude>,<speed>,<course>,<altitude>"
-    device_id = "123456789012345"  # Replace with a valid device identifier
-    timestamp = int(time.time())
+    device_id = "123456789012345"  # Replace with your actual device ID
     latitude = random.uniform(-90.0, 90.0)
     longitude = random.uniform(-180.0, 180.0)
-    speed = random.uniform(0, 100)  # Speed in km/h
-    course = random.uniform(0, 360)  # Course in degrees
+    timestamp = int(time.time())  # UNIX timestamp
     altitude = random.uniform(0, 5000)  # Altitude in meters
+    speed = random.uniform(0, 120)  # Speed in km/h
     
-    # Formulate data packet
-    data_packet = f"${device_id},{timestamp},{latitude:.6f},{longitude:.6f},{speed:.2f},{course:.2f},{altitude:.2f}"
-    return data_packet
+    # Format data for OsmAnd protocol
+    frame = f"id={device_id},lat={latitude:.6f},lon={longitude:.6f},timestamp={timestamp},altitude={altitude:.2f},speed={speed:.2f}\n"
+    return frame
 
 try:
     # Connect to the Traccar server
@@ -34,15 +31,13 @@ try:
     print("Connected to the Traccar server.")
 
     while True:
-        # Generate dummy GPS data
-        gps_data = generate_dummy_gps_data()
-        print(f"Sending data: {gps_data}")
-
-        # Send data to the server
-        client_socket.sendall(gps_data.encode('utf-8'))
+        # Generate and send data frame
+        gps_frame = generate_osmand_frame()
+        print(f"Sending frame: {gps_frame.strip()}")
+        client_socket.sendall(gps_frame.encode('utf-8'))
 
         # Wait before sending the next packet
-        time.sleep(2)  # Adjust the interval as needed
+        time.sleep(2)
 except Exception as e:
     print(f"Error: {e}")
 finally:
