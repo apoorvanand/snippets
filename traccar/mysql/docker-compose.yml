@@ -1,0 +1,127 @@
+To run Traccar with MySQL using Docker Compose in Swarm mode with a custom host and configuration file, follow these steps:
+
+1. **Create a network for your swarm:**
+
+```bash
+docker network create --driver overlay traccar_network
+```
+
+2. **Create a directory structure for your project:**
+
+```
+traccar-swarm/
+├── docker-compose.yml
+├── traccar/
+│   ├── conf/
+│   │   └── application.conf
+│   └── entrypoint.sh
+└── mysql/
+    └── docker-entrypoint-initdb.d/
+        └── init.sql
+```
+
+3. **Create a `docker-compose.yml` file:**
+
+```yaml
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: traccar
+      MYSQL_USER: traccar
+      MYSQL_PASSWORD: traccar_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - traccar_network
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  traccar:
+    image: traccar/traccar:4.12
+    volumes:
+      - ./traccar/conf:/opt/traccar/conf
+    environment:
+      - SPRING_PROFILES_ACTIVE=mysql
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/traccar
+      - SPRING_DATASOURCE_USERNAME=traccar
+      - SPRING_DATASOURCE_PASSWORD=traccar_password
+    ports:
+      - "8080:8080"
+    networks:
+      - traccar_network
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+volumes:
+  mysql_data:
+
+networks:
+  traccar_network:
+    external: true
+```
+
+4. **Create a custom `application.conf` file for Traccar:**
+
+```
+# Place your custom configuration here
+```
+
+5. **Create an `entrypoint.sh` script for Traccar:**
+
+```bash
+#!/bin/sh
+chown -R traccar:traccar /opt/traccar/conf
+exec /opt/traccar/bin/traccar -c /opt/traccar/conf/application.conf
+```
+
+6. **Initialize MySQL with an `init.sql` file:**
+
+```sql
+CREATE TABLE IF NOT EXISTS devices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  deviceId VARCHAR(255) NOT NULL UNIQUE,
+  name VARCHAR(255),
+  active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS positions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  deviceId VARCHAR(255) NOT NULL,
+  latitude DECIMAL(9, 6),
+  longitude DECIMAL(9, 6),
+  altitude DECIMAL(9, 2),
+  speed DECIMAL(9, 2),
+  course DECIMAL(9, 2),
+  address VARCHAR(255),
+  attributes JSON,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (deviceId) REFERENCES devices(deviceId)
+);
+```
+
+7. **Deploy your stack:**
+
+```bash
+docker stack deploy -c docker-compose.yml traccar
+```
+
+8. **Check the status of your services:**
+
+```bash
+docker stack ps traccar
+```
+
+Now, Traccar should be running with MySQL in Swarm mode using the provided custom host and configuration file.
