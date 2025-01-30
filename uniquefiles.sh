@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 # Check if any arguments are provided
 if [ $# -eq 0 ]; then
@@ -20,13 +20,13 @@ generate_unique_filename() {
 # Iterate through all provided files
 for file in "$@"; do
     # Check if file exists
-    if [ ! -f "$file" ]; then
+    if [[ ! -f "$file" ]]; then
         echo "File $file does not exist. Skipping."
         continue
     fi
     
     # Make 100 copies of each file
-    for i in $(seq 1 100); do
+    for i in {1..100}; do
         unique_filename=$(generate_unique_filename "$file" "$i")
         cp "$file" "$unique_filename"
         echo "Created copy: $unique_filename"
