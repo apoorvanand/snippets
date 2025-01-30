@@ -23,7 +23,7 @@ for file in "$@"; do
     if [ ! -f "$file" ]; then
         echo "File $file does not exist. Skipping."
         continue
-    }
+    fi
     
     # Make 100 copies of each file
     for i in $(seq 1 100); do
@@ -32,5 +32,3 @@ for file in "$@"; do
         echo "Created copy: $unique_filename"
     done
 done
-
-
