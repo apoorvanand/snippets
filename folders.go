@@ -10,7 +10,7 @@ import (
 )
 
 func extractFolderContainingFile(sourceZip, destinationPath, filename string) error {
-	// Check if destination folder exists; if not, create it
+	// Ensure the destination folder exists
 	if _, err := os.Stat(destinationPath); os.IsNotExist(err) {
 		err := os.MkdirAll(destinationPath, os.ModePerm)
 		if err != nil {
@@ -44,7 +44,6 @@ func extractFolderContainingFile(sourceZip, destinationPath, filename string) er
 	// Extract files from the target folder while preserving structure
 	for _, file := range reader.File {
 		if strings.HasPrefix(file.Name, targetFolder) {
-			// Construct the full path for extraction
 			extractedPath := filepath.Join(destinationPath, filepath.FromSlash(file.Name))
 
 			if file.FileInfo().IsDir() {
@@ -62,7 +61,7 @@ func extractFolderContainingFile(sourceZip, destinationPath, filename string) er
 				return fmt.Errorf("failed to create parent directories: %v", err)
 			}
 
-			// Create and write to the file
+			// Extract and write the file
 			outFile, err := os.OpenFile(extractedPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
 			if err != nil {
 				return fmt.Errorf("failed to create file: %v", err)
@@ -89,9 +88,9 @@ func extractFolderContainingFile(sourceZip, destinationPath, filename string) er
 }
 
 func main() {
-	sourceZip := "path/to/your/archive.zip"
-	destinationPath := "path/to/extraction/directory"
-	filename := "specific_file.txt"
+	sourceZip := "path/to/your/archive.zip"         // Replace with your ZIP file path
+	destinationPath := "path/to/extraction/directory" // Replace with your destination folder path
+	filename := "specific_file.txt"                  // Replace with your target filename
 
 	err := extractFolderContainingFile(sourceZip, destinationPath, filename)
 	if err != nil {
