@@ -6,9 +6,18 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func extractFolderContainingFile(sourceZip, destinationPath, filename string) error {
+	// Check if destination folder exists; if not, create it
+	if _, err := os.Stat(destinationPath); os.IsNotExist(err) {
+		err := os.MkdirAll(destinationPath, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("failed to create destination folder: %v", err)
+		}
+	}
+
 	// Open the zip file
 	reader, err := zip.OpenReader(sourceZip)
 	if err != nil {
@@ -16,10 +25,13 @@ func extractFolderContainingFile(sourceZip, destinationPath, filename string) er
 	}
 	defer reader.Close()
 
+	// Normalize the filename to match ZIP archive paths
+	filename = filepath.ToSlash(filename)
+
 	// Search for the specific file and its containing folder
 	var targetFolder string
 	for _, file := range reader.File {
-		if filepath.Base(file.Name) == filename {
+		if strings.HasSuffix(file.Name, filename) {
 			targetFolder = filepath.Dir(file.Name)
 			break
 		}
@@ -33,7 +45,7 @@ func extractFolderContainingFile(sourceZip, destinationPath, filename string) er
 	for _, file := range reader.File {
 		if strings.HasPrefix(file.Name, targetFolder) {
 			// Construct the full path for extraction
-			extractedPath := filepath.Join(destinationPath, file.Name)
+			extractedPath := filepath.Join(destinationPath, filepath.FromSlash(file.Name))
 
 			if file.FileInfo().IsDir() {
 				// Create directory
