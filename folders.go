@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 func extractFolderContainingFile(sourceZip, destinationPath, filename string) error {
@@ -20,7 +19,7 @@ func extractFolderContainingFile(sourceZip, destinationPath, filename string) er
 	// Search for the specific file and its containing folder
 	var targetFolder string
 	for _, file := range reader.File {
-		if strings.HasSuffix(file.Name, filename) {
+		if filepath.Base(file.Name) == filename {
 			targetFolder = filepath.Dir(file.Name)
 			break
 		}
@@ -30,35 +29,29 @@ func extractFolderContainingFile(sourceZip, destinationPath, filename string) er
 		return fmt.Errorf("file '%s' not found in the archive", filename)
 	}
 
-	// Extract files from the target folder while preserving relative paths
+	// Extract files from the target folder while preserving structure
 	for _, file := range reader.File {
 		if strings.HasPrefix(file.Name, targetFolder) {
-			// Calculate the relative path of the file within the target folder
-			relPath := strings.TrimPrefix(file.Name, targetFolder)
-			if strings.HasPrefix(relPath, string(os.PathSeparator)) || strings.HasPrefix(relPath, "/") {
-				relPath = relPath[1:] // Remove leading separator if present
-			}
-
 			// Construct the full path for extraction
-			path := filepath.Join(destinationPath, relPath)
+			extractedPath := filepath.Join(destinationPath, file.Name)
 
 			if file.FileInfo().IsDir() {
 				// Create directory
-				err := os.MkdirAll(path, os.ModePerm)
+				err := os.MkdirAll(extractedPath, os.ModePerm)
 				if err != nil {
 					return fmt.Errorf("failed to create directory: %v", err)
 				}
 				continue
 			}
 
-			// Create the containing folder
-			err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
+			// Create parent directories if needed
+			err := os.MkdirAll(filepath.Dir(extractedPath), os.ModePerm)
 			if err != nil {
-				return fmt.Errorf("failed to create directory: %v", err)
+				return fmt.Errorf("failed to create parent directories: %v", err)
 			}
 
 			// Create and write to the file
-			outFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
+			outFile, err := os.OpenFile(extractedPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
 			if err != nil {
 				return fmt.Errorf("failed to create file: %v", err)
 			}
