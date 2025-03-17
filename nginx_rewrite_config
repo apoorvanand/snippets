@@ -14,3 +14,11 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
+
+
+
+    # First, create a specific location block for URLs containing "serenity"
+    location ~ ^/autoreport/.*/serenity$ {
+        # Rewrite internally to the base path
+        rewrite ^(/autoreport/).*(/serenity)$ $1 last;
+    }
