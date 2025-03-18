@@ -185,4 +185,40 @@ Citations:
 [17] https://repost.aws/knowledge-center/eks-pods-iam-role-service-accounts
 
 ---
-Answer from Perplexity: pplx.ai/share
+```
+<dependencies>
+    <!-- AWS SDK v2 Core -->
+    <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>sts</artifactId>
+        <version>2.21.30</version>
+    </dependency>
+    
+    <!-- Apache Kafka Client -->
+    <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka-clients</artifactId>
+        <version>3.5.1</version>
+    </dependency>
+    
+    <!-- AWS MSK IAM Auth Library -->
+    <dependency>
+        <groupId>software.amazon.msk</groupId>
+        <artifactId>aws-msk-iam-auth</artifactId>
+        <version>1.1.6</version>
+    </dependency>
+    
+    <!-- SLF4J for logging -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>2.0.9</version>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>2.0.9</version>
+    </dependency>
+</dependencies>
+
+```
