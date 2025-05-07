@@ -10,3 +10,11 @@ dt = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
 unix_timestamp = int(dt.timestamp())
 
 print(unix_timestamp)
+
+# Parse using fromisoformat (handles timezone too)
+dt = datetime.fromisoformat(time_str)
+
+# Convert to Unix timestamp
+unix_timestamp = dt.timestamp()
+
+print(unix_timestamp)
